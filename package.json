@@ -17,7 +17,13 @@
 		}
 	},
 	"scripts": {
+		"test:run": "vitest run",
+		"test:ui": "vitest --ui",
+		"test": "vitest"
 	},
 	"devDependencies": {
+		"@vitest/ui": "latest",
+		"vite": "latest",
+		"vitest": "latest"
 	}
 }
