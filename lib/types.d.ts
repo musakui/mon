@@ -15,6 +15,8 @@ export type ForeignKeyAction =
 	| 'SET DEFAULT'
 	| 'CASCADE'
 
+export type FailureAction = 'ABORT' | 'FAIL' | 'IGNORE' | 'REPLACE' | 'ROLLBACK'
+
 export interface ColTypeMap {
 	NULL: null
 	TEXT: string
@@ -93,30 +95,17 @@ export type DatabaseSchema = Map<string, TableSchema>
 
 // CORE
 
-export type Operation = [op: string, ...unknown[]]
-
-export type ProcessOperation = (
-	op: string,
-	params: string | unknown[]
-) => Operation
-
 export type QueryColOption = {
-	/** selection (e.g. col name) */
-	sel: string
-
-	/** function on value */
-	fn?: string
+	/** col name or functions */
+	col: string
 
 	/** alias for selection */
 	name?: string
-
-	/** table of sel */
-	table?: string
 }
 
 /** condition with parameters */
 export type RawCondition = {
-	/** raw SQL, or col name / alias if operator provided */
+	/** raw SQL, or col name/alias if operator provided */
 	sql: string
 
 	/** operator */
@@ -126,7 +115,8 @@ export type RawCondition = {
 	params?: string | unknown[]
 }
 
-export type BaseCondition = {
+/** processed condition */
+export type ParsedCondition = {
 	/** raw SQL */
 	sql: string
 
@@ -175,9 +165,6 @@ export type QuerySortOption<ColName extends string = string> = {
 }
 
 export type SelectStatementOptions = {
-	/** table name */
-	table: string
-
 	/** DISTINCT */
 	distinct?: boolean
 
@@ -210,14 +197,12 @@ export type SelectStatementOptions = {
 }
 
 export type InsertStatementOptions = {
-	/** table name */
-	table: string
-
-	/** columns to insert */
+	/**
+	 * columns to insert
+	 *
+	 * if unspecified, values must have the same number and order as the table
+	 */
 	cols?: string[]
-
-	/** list of rows to insert, one array per row */
-	values: unknown[][]
 
 	/**
 	 * true: ON CONFLICT DO NOTHING
@@ -225,13 +210,24 @@ export type InsertStatementOptions = {
 	upsert?: boolean
 
 	/** alternate action upon failure */
-	action?: 'ABORT' | 'FAIL' | 'IGNORE' | 'REPLACE' | 'ROLLBACK'
+	action?: FailureAction
+}
+
+export type UpdateStatementOptions = {
+	/** values to update */
+	updates?: Record<string, unknown>
+
+	/** WHERE */
+	where?: QueryCondition
+
+	/** alternate action upon failure */
+	action?: FailureAction
+
+	/** columns to return */
+	returning?: QueryColOption[]
 }
 
 export type DeleteStatementOptions = {
-	/** table name */
-	table: string
-
-	/** WHERE conditions */
+	/** WHERE */
 	where?: QueryCondition
 }
