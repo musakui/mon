@@ -28,6 +28,11 @@ describe('joinParts', () => {
 			parts: ['foo', '', 'bar', ' ', 'baz'],
 			result: 'foo bar baz',
 		},
+		{
+			name: 'non-strings',
+			parts: ['foo', false, 'bar', 0, 'baz'],
+			result: 'foo bar baz',
+		},
 	])(`handles $name`, ({ parts, result }) => {
 		expect(generate.joinParts(parts)).toEqual(result)
 	})
@@ -71,16 +76,9 @@ describe('combineConditions', () => {
 describe('normalizeCondition', () => {
 	it('handles empty', ({ expect }) => {
 		expect(generate.normalizeCondition()).toEqual([])
-		expect(generate.normalizeCondition('')).toEqual([])
 	})
 
-	it('handles string', ({ expect }) => {
-		expect(generate.normalizeCondition('baz = 2')).toEqual([
-			{ sql: 'baz = 2', params: [] },
-		])
-	})
-
-	it('handles condition', ({ expect }) => {
+	it('handles single condition', ({ expect }) => {
 		expect(generate.normalizeCondition({ sql: '' })).toEqual([])
 		expect(generate.normalizeCondition({ sql: 'bar = 3' })).toEqual([
 			{ sql: 'bar = 3', params: [] },
@@ -97,17 +95,10 @@ describe('normalizeCondition', () => {
 	})
 
 	it('handles array', ({ expect }) => {
-		expect(generate.normalizeCondition(['bar = 2'])).toEqual([
-			{ sql: 'bar = 2', params: [] },
-		])
-		expect(generate.normalizeCondition(['bar = 2', 'baz > 3'])).toEqual([
-			{ sql: 'bar = 2', params: [] },
-			{ sql: 'baz > 3', params: [] },
-		])
 		expect(
 			generate.normalizeCondition([
 				{ sql: 'bar', op: '=', params: '2' },
-				'baz > 3',
+				{ sql: 'baz > 3' },
 			])
 		).toEqual([
 			{ sql: 'bar = ?', params: ['2'] },
@@ -146,12 +137,12 @@ describe('generateSelect', () => {
 		},
 		{
 			name: 'multi conditions',
-			where: ['bar = 2', 'baz = 3'],
+			where: [{ sql: 'bar = 2' }, { sql: 'baz = 3' }],
 			query: `SELECT foo.* FROM foo WHERE (bar = 2 AND baz = 3)`,
 		},
 		{
 			name: 'nested conditions',
-			where: ['bar = 2', ['baz = 3', 'baz > 69']],
+			where: [{ sql: 'bar = 2' }, [{ sql: 'baz = 3' }, { sql: 'baz > 69' }]],
 			query: `SELECT foo.* FROM foo WHERE (bar = 2 AND (baz = 3 OR baz > 69))`,
 		},
 		{

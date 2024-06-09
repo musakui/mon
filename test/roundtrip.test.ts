@@ -18,7 +18,7 @@ describe('round trip conversions', () => {
 			where: [
 				{ sql: 'id', op: '>', params: '2' },
 				[
-					[{ sql: 'a0', op: 'ISNULL', params: '_' }],
+					{ sql: 'a0', op: 'ISNULL', params: '_' },
 					[
 						{ sql: 'b1', op: '<', params: '123' },
 						{ sql: 'b2', op: '>=', params: '456' },

@@ -58,15 +58,21 @@ describe('parseConditionOption', () => {
 		expect(parse.parseConditionOption(',')).toEqual(null)
 	})
 	it('parses single condition', ({ expect }) => {
-		expect(parse.parseConditionOption('foo:2')).toEqual([
-			{ sql: 'foo', op: '=', params: '2' },
-		])
-		expect(parse.parseConditionOption('bar__le:420')).toEqual([
-			{ sql: 'bar', op: '<=', params: '420' },
-		])
-		expect(parse.parseConditionOption('baz__nu:_')).toEqual([
-			{ sql: 'baz', op: 'ISNULL', params: '_' },
-		])
+		expect(parse.parseConditionOption('foo:2')).toEqual({
+			sql: 'foo',
+			op: '=',
+			params: '2',
+		})
+		expect(parse.parseConditionOption('bar__le:420')).toEqual({
+			sql: 'bar',
+			op: '<=',
+			params: '420',
+		})
+		expect(parse.parseConditionOption('baz__nu:_')).toEqual({
+			sql: 'baz',
+			op: 'ISNULL',
+			params: '_',
+		})
 	})
 	it('parses multiple conditions', ({ expect }) => {
 		expect(parse.parseConditionOption('foo:1,bar__gt:69,baz:29')).toEqual([

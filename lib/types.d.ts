@@ -123,7 +123,7 @@ export type RawCondition = {
  *
  * each level of nesting will flip between AND and OR
  */
-export type QueryCondition = string | RawCondition | QueryCondition[]
+export type QueryCondition = RawCondition | QueryCondition[]
 
 export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL'
 
@@ -169,7 +169,7 @@ export type SelectStatementOptions = {
 	addSelect?: QueryColOption[]
 
 	/** WHERE */
-	where?: QueryCondition
+	where?: string | QueryCondition
 
 	/** JOIN */
 	join?: QueryJoinOption[]
@@ -212,7 +212,7 @@ export type UpdateStatementOptions = {
 	updates?: Record<string, unknown>
 
 	/** WHERE */
-	where?: QueryCondition
+	where?: string | QueryCondition
 
 	/** alternate action upon failure */
 	action?: FailureAction
@@ -223,5 +223,5 @@ export type UpdateStatementOptions = {
 
 export type DeleteStatementOptions = {
 	/** WHERE */
-	where?: QueryCondition
+	where?: string | QueryCondition
 }
