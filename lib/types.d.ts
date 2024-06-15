@@ -93,6 +93,32 @@ export type TableSchema = {
 
 export type DatabaseSchema = Map<string, TableSchema>
 
+// UTIL
+
+export type Operation = [op: string, ...unknown[]]
+
+export type ProcessOperation = (
+	op: string,
+	params: string | unknown[]
+) => Operation
+
+export type OperationOptions = {
+	/** SQL operator */
+	op: string
+
+	/** opcode to use in parsing */
+	code: string
+
+	/** opcode to use for NOT */
+	notCode?: string
+
+	/** process operation from params */
+	process: ProcessOperation
+
+	/** stringify parameters */
+	stringify?: (params: unknown[]) => string
+}
+
 // CORE
 
 export type QueryColOption = {
