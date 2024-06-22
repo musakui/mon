@@ -11,18 +11,24 @@
 	"main": "./lib/index.js",
 	"types": "./types/index.d.ts",
 	"exports": {
+		"./all": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/all.js"
+		},
 		".": {
 			"types": "./types/index.d.ts",
 			"import": "./lib/index.js"
 		}
 	},
 	"scripts": {
+		"gentypes": "dts-buddy -m @musakui/mon:lib/public.d.ts -m @musakui/mon/all:lib/all.js",
 		"test:run": "vitest run",
 		"test:ui": "vitest --ui",
 		"test": "vitest"
 	},
 	"devDependencies": {
 		"@vitest/ui": "latest",
+		"dts-buddy": "latest",
 		"vite": "latest",
 		"vitest": "latest"
 	}
