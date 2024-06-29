@@ -26,6 +26,11 @@ describe('round trip conversions', () => {
 				],
 			],
 		},
+		{ name: 'join', join: [{ table: 'foo', col: 'bar' }] },
+		{
+			name: 'join with type',
+			join: [{ table: 'foo', col: 'bar', other: 'tb', type: 'LEFT' as const }],
+		},
 		{ name: 'sorting', sort: [{ col: 'foo' }, { col: 'bar', desc: true }] },
 		{ name: 'pagination take', take: 420 },
 		{ name: 'pagination skip', skip: 69 },

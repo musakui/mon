@@ -104,24 +104,24 @@ describe('parseJoinOption', () => {
 	})
 
 	it('parses join', ({ expect }) => {
-		expect(parse.parseJoinOption('foo')).toEqual({ join: 'foo' })
+		expect(parse.parseJoinOption('foo')).toEqual({ table: 'foo' })
 	})
 
 	it('parses with names', ({ expect }) => {
 		expect(parse.parseJoinOption('foo:bar')).toEqual({
-			join: 'foo',
-			name: 'bar',
+			table: 'foo',
+			col: 'bar',
 		})
 		expect(parse.parseJoinOption('foo:bar:baz')).toEqual({
-			join: 'foo',
-			name: 'bar',
-			col: 'baz',
+			table: 'foo',
+			col: 'bar',
+			to: 'baz',
 		})
 		expect(parse.parseJoinOption('foo:bar:baz:boom')).toEqual({
-			join: 'foo',
-			name: 'bar',
-			col: 'baz',
-			table: 'boom',
+			table: 'foo',
+			col: 'bar',
+			to: 'baz',
+			other: 'boom',
 		})
 	})
 })

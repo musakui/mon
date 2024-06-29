@@ -147,17 +147,17 @@ describe('generateSelect', () => {
 		},
 		{
 			name: 'natural join',
-			join: [{ join: 'baz' }],
+			join: [{ table: 'baz' }],
 			query: `SELECT foo.* FROM foo NATURAL JOIN baz`,
 		},
 		{
 			name: 'join with name',
-			join: [{ join: 'table2', name: 'bar' }],
+			join: [{ table: 'table2', col: 'bar' }],
 			query: `SELECT foo.* FROM foo JOIN table2 ON table2.bar = foo.bar`,
 		},
 		{
 			name: 'join with type',
-			join: [{ join: 'table2', type: 'LEFT' as const, name: 'bar' }],
+			join: [{ table: 'table2', type: 'LEFT' as const, col: 'bar' }],
 			query: `SELECT foo.* FROM foo LEFT JOIN table2 ON table2.bar = foo.bar`,
 		},
 		{
@@ -165,10 +165,10 @@ describe('generateSelect', () => {
 			join: [
 				{
 					type: 'RIGHT' as const,
-					join: 'table2',
-					name: 'bar',
-					table: 'table3',
-					col: 'baz',
+					table: 'table2',
+					col: 'bar',
+					other: 'table3',
+					to: 'baz',
 				},
 			],
 			query: `SELECT foo.* FROM foo RIGHT JOIN table2 ON table2.bar = table3.baz`,

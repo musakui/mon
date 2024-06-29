@@ -154,23 +154,27 @@ export type QueryCondition = RawCondition | QueryCondition[]
 export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL'
 
 export type QueryJoinOption = {
-	/** other table name */
-	join: string
+	/** table to join with */
+	table: string
 
-	/** column name in other table (NATURAL join will be used if unspecified) */
-	name?: string
-
-	/** column name to match (default to name) */
+	/**
+	 * column name in joined table
+	 *
+	 * NATURAL join will be used if unspecified
+	 */
 	col?: string
 
-	/** table name to match (default to current table) */
-	table?: string
+	/** target column name to match (default to col) */
+	to?: string
+
+	/** table to match (default to current table) */
+	other?: string
 
 	/** custom join condition */
-	cond?: string
+	on?: string
 
 	/** join type */
-	type?: JoinType
+	type?: JoinType | Lowercase<JoinType>
 }
 
 export type QuerySortOption<ColName extends string = string> = {

@@ -63,6 +63,17 @@ describe('stringifySelectOptions', () => {
 			],
 			result: 'id__gt=1&_w=foo__le%3A2%2Cbar%3Ahi&_w=baz__nu%3A_',
 		},
+		{ name: 'join', join: [{ table: 'bar' }], result: '_j=bar' },
+		{
+			name: 'join with col and other',
+			join: [{ table: 'bar', col: 'baz', other: 'boom' }],
+			result: '_j=bar%3Abaz%3A%3Aboom',
+		},
+		{
+			name: 'other join type',
+			join: [{ table: 'bar', col: 'baz', type: 'LEFT' as const }],
+			result: '_lj=bar%3Abaz',
+		},
 		{ name: 'group', group: ['foo'], result: '_g=foo' },
 		{ name: 'simple sort', sort: [{ col: 'foo' }], result: '_s=foo' },
 		{
