@@ -17,12 +17,16 @@
 		}
 	},
 	"scripts": {
+		"dev": "node --watch ./app/server.js",
 		"test:run": "vitest run",
 		"test:ui": "vitest --ui",
 		"test": "vitest"
 	},
 	"devDependencies": {
+		"@tinyhttp/app": "latest",
 		"@vitest/ui": "latest",
+		"milliparsec": "latest",
+		"sqlite3": "latest",
 		"vite": "latest",
 		"vitest": "latest"
 	}
