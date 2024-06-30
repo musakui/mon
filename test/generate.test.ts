@@ -51,7 +51,7 @@ describe('normalizeCondition', () => {
 
 describe('generateSelect', () => {
 	it('gives empty default', ({ expect }) => {
-		expect(generate.generateSelect({ table: 'foo' })).toEqual({
+		expect(generate.generateSelect('foo')).toEqual({
 			query: `SELECT foo.* FROM foo`,
 			values: [],
 		})
@@ -59,49 +59,46 @@ describe('generateSelect', () => {
 
 	it('handles selects', ({ expect }) => {
 		expect(
-			generate.generateSelect({ table: 'foo', select: ['bar', 'baz'] })
+			generate.generateSelect('foo', { select: ['bar', 'baz'] })
 		).toEqual({
 			query: `SELECT foo.bar,foo.baz FROM foo`,
 			values: [],
 		})
 		expect(
-			generate.generateSelect({
-				table: 'foo',
-				select: [{ sel: 'baz', fn: 'MAX', name: 'max' }],
+			generate.generateSelect('foo', {
+				select: [{ col: 'baz', name: 'bar' }],
 			})
 		).toEqual({
-			query: `SELECT MAX(foo.baz) AS max FROM foo`,
+			query: `SELECT baz AS bar FROM foo`,
 			values: [],
 		})
 		expect(
-			generate.generateSelect({
-				table: 'foo',
-				addSelect: [{ sel: 'bar', fn: 'COUNT' }],
+			generate.generateSelect('foo', {
+				addSelect: [{ col: 'MAX(bar)', name: 'max' }],
 			})
 		).toEqual({
-			query: `SELECT foo.*,COUNT(foo.bar) FROM foo`,
+			query: `SELECT foo.*,MAX(bar) AS max FROM foo`,
 			values: [],
 		})
 	})
 
 	it('handles conditions', ({ expect }) => {
 		expect(
-			generate.generateSelect({ table: 'foo', where: 'bar IS NULL' })
+			generate.generateSelect('foo', { where: 'bar IS NULL' })
 		).toEqual({
 			query: `SELECT foo.* FROM foo WHERE bar IS NULL`,
 			values: [],
 		})
 
 		expect(
-			generate.generateSelect({ table: 'foo', where: ['bar = 2', 'baz = 3'] })
+			generate.generateSelect('foo', { where: ['bar = 2', 'baz = 3'] })
 		).toEqual({
 			query: `SELECT foo.* FROM foo WHERE (bar = 2 AND baz = 3)`,
 			values: [],
 		})
 
 		expect(
-			generate.generateSelect({
-				table: 'foo',
+			generate.generateSelect('foo', {
 				where: ['bar = 2', ['baz = 3', 'baz > 69']],
 			})
 		).toEqual({
@@ -112,14 +109,13 @@ describe('generateSelect', () => {
 
 	it('handles sorting', ({ expect }) => {
 		expect(
-			generate.generateSelect({ table: 'foo', sort: [{ col: 'baz' }] })
+			generate.generateSelect('foo', { sort: [{ col: 'baz' }] })
 		).toEqual({
 			query: `SELECT foo.* FROM foo ORDER BY baz ASC NULLS LAST`,
 			values: [],
 		})
 		expect(
-			generate.generateSelect({
-				table: 'foo',
+			generate.generateSelect('foo', {
 				sort: [
 					{ col: 'bar', desc: true },
 					{ col: 'baz', nullsFirst: true },
@@ -132,19 +128,76 @@ describe('generateSelect', () => {
 	})
 
 	it('handles pagination', ({ expect }) => {
-		expect(generate.generateSelect({ table: 'foo', take: 2 })).toEqual({
+		expect(generate.generateSelect('foo', { take: 2 })).toEqual({
 			query: `SELECT foo.* FROM foo LIMIT 2`,
 			values: [],
 		})
-		expect(generate.generateSelect({ table: 'foo', skip: 9 })).toEqual({
+		expect(generate.generateSelect('foo', { skip: 9 })).toEqual({
 			query: `SELECT foo.* FROM foo OFFSET 9`,
 			values: [],
 		})
 		expect(
-			generate.generateSelect({ table: 'foo', take: 69, skip: 420 })
+			generate.generateSelect('foo', { take: 69, skip: 420 })
 		).toEqual({
 			query: `SELECT foo.* FROM foo LIMIT 69 OFFSET 420`,
 			values: [],
 		})
+	})
+})
+
+describe('getInsertValues', () => {
+	it('generates correctly', ({ expect }) => {
+		expect(generate.getInsertValues([])).toEqual([])
+		expect(generate.getInsertValues([{ foo: 'bar', baz: 'boom' }])).toEqual([
+			{
+				cols: ['baz', 'foo'],
+				values: [['boom', 'bar']],
+			},
+		])
+		expect(
+			generate.getInsertValues([
+				{ a: 1, b: 2 },
+				{ a: 3, b: 4 },
+			])
+		).toEqual([
+			{
+				cols: ['a', 'b'],
+				values: [
+					[1, 2],
+					[3, 4],
+				],
+			},
+		])
+	})
+
+	it('generates for different keys', ({ expect }) => {
+		expect(
+			generate.getInsertValues([
+				{ a: 1, b: 2 },
+				{ a: 3, b: 4, c: 5 },
+				{ a: 6, b: 7 },
+				{ a: 8, b: 9, c: 10 },
+				{ a: 11, c: 12 },
+			])
+		).toEqual([
+			{
+				cols: ['a', 'b'],
+				values: [
+					[1, 2],
+					[6, 7],
+				],
+			},
+			{
+				cols: ['a', 'b', 'c'],
+				values: [
+					[3, 4, 5],
+					[8, 9, 10],
+				],
+			},
+			{
+				cols: ['a', 'c'],
+				values: [[11, 12]],
+			},
+		])
 	})
 })

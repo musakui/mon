@@ -27,27 +27,18 @@ describe('getAll', () => {
 
 describe('parseSelectOption', () => {
 	it('parses empty', ({ expect }) => {
-		expect(parse.parseSelectOption('')).toEqual(null)
-		expect(parse.parseSelectOption(':')).toEqual(null)
+		expect(parse.parseColOption('')).toEqual(null)
+		expect(parse.parseColOption(':')).toEqual(null)
 	})
 
 	it('parses simple', ({ expect }) => {
-		expect(parse.parseSelectOption('foo')).toEqual({ sel: 'foo' })
+		expect(parse.parseColOption('foo')).toEqual({ col: 'foo' })
 	})
 
-	it('parses with function/alias', ({ expect }) => {
-		expect(parse.parseSelectOption('foo:MAX')).toEqual({
-			sel: 'foo',
-			fn: 'MAX',
-		})
-		expect(parse.parseSelectOption('foo:MAX:max')).toEqual({
-			sel: 'foo',
-			fn: 'MAX',
+	it('parses with alias', ({ expect }) => {
+		expect(parse.parseColOption('MAX(foo):max')).toEqual({
+			col: 'MAX(foo)',
 			name: 'max',
-		})
-		expect(parse.parseSelectOption('foo::bar')).toEqual({
-			sel: 'foo',
-			name: 'bar',
 		})
 	})
 })
@@ -172,62 +163,5 @@ describe('parsePagination', () => {
 			skip: 50,
 			take: 25,
 		})
-	})
-})
-
-describe('parseInsertItems', () => {
-	it('parses correctly', ({ expect }) => {
-		expect(parse.parseInsertItems([])).toEqual([])
-		expect(parse.parseInsertItems([{ foo: 'bar', baz: 'boom' }])).toEqual([
-			{
-				cols: ['baz', 'foo'],
-				values: [['boom', 'bar']],
-			},
-		])
-		expect(
-			parse.parseInsertItems([
-				{ a: 1, b: 2 },
-				{ a: 3, b: 4 },
-			])
-		).toEqual([
-			{
-				cols: ['a', 'b'],
-				values: [
-					[1, 2],
-					[3, 4],
-				],
-			},
-		])
-	})
-
-	it('parses for different keys', ({ expect }) => {
-		expect(
-			parse.parseInsertItems([
-				{ a: 1, b: 2 },
-				{ a: 3, b: 4, c: 5 },
-				{ a: 6, b: 7 },
-				{ a: 8, b: 9, c: 10 },
-				{ a: 11, c: 12 },
-			])
-		).toEqual([
-			{
-				cols: ['a', 'b'],
-				values: [
-					[1, 2],
-					[6, 7],
-				],
-			},
-			{
-				cols: ['a', 'b', 'c'],
-				values: [
-					[3, 4, 5],
-					[8, 9, 10],
-				],
-			},
-			{
-				cols: ['a', 'c'],
-				values: [[11, 12]],
-			},
-		])
 	})
 })
