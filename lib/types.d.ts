@@ -101,6 +101,9 @@ export type QueryColOption = {
 
 	/** alias for selection */
 	name?: string
+
+	/** CAST to datatype */
+	cast?: ColType
 }
 
 /** condition with parameters */
@@ -113,15 +116,6 @@ export type RawCondition = {
 
 	/** parameters */
 	params?: string | unknown[]
-}
-
-/** processed condition */
-export type ParsedCondition = {
-	/** raw SQL */
-	sql: string
-
-	/** parameters */
-	params: unknown[]
 }
 
 /**
@@ -181,7 +175,7 @@ export type SelectStatementOptions = {
 	join?: QueryJoinOption[]
 
 	/** GROUP BY */
-	group?: QueryColOption[]
+	group?: string[]
 
 	/** HAVING */
 	having?: QueryCondition

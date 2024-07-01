@@ -25,7 +25,7 @@ describe('getAll', () => {
 	})
 })
 
-describe('parseSelectOption', () => {
+describe('parseColOption', () => {
 	it('parses empty', ({ expect }) => {
 		expect(parse.parseColOption('')).toEqual(null)
 		expect(parse.parseColOption(':')).toEqual(null)
@@ -35,10 +35,19 @@ describe('parseSelectOption', () => {
 		expect(parse.parseColOption('foo')).toEqual({ col: 'foo' })
 	})
 
-	it('parses with alias', ({ expect }) => {
+	it('parses with alias/cast', ({ expect }) => {
 		expect(parse.parseColOption('MAX(foo):max')).toEqual({
 			col: 'MAX(foo)',
 			name: 'max',
+		})
+		expect(parse.parseColOption('MIN(foo)::REAL')).toEqual({
+			col: 'MIN(foo)',
+			cast: 'REAL',
+		})
+		expect(parse.parseColOption('COUNT(foo):count:INTEGER')).toEqual({
+			col: 'COUNT(foo)',
+			name: 'count',
+			cast: 'INTEGER',
 		})
 	})
 })
@@ -163,5 +172,34 @@ describe('parsePagination', () => {
 			skip: 50,
 			take: 25,
 		})
+	})
+})
+
+describe('findConditions', () => {
+	it('handles empty', ({ expect }) => {
+		expect([...parse.findConditions(usp(''))]).toEqual([])
+		expect([...parse.findConditions(usp('?_foo=bar'))]).toEqual([])
+	})
+
+	it('finds bare', ({ expect }) => {
+		expect([...parse.findConditions(usp('?foo=bar'))]).toEqual([
+			{ sql: 'foo', op: '=', params: 'bar' },
+		])
+	})
+
+	it('finds with op', ({ expect }) => {
+		expect([...parse.findConditions(usp('?foo__le=bar'))]).toEqual([
+			{ sql: 'foo', op: '<=', params: 'bar' },
+		])
+	})
+
+	it('finds multiple', ({ expect }) => {
+		expect([
+			...parse.findConditions(usp('?foo__ne=bar&foo__ne=baz&asdf=3')),
+		]).toEqual([
+			{ sql: 'foo', op: '!=', params: 'bar' },
+			{ sql: 'foo', op: '!=', params: 'baz' },
+			{ sql: 'asdf', op: '=', params: '3' },
+		])
 	})
 })
