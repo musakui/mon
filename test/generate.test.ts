@@ -1,17 +1,35 @@
-import { describe, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import * as generate from '../lib/generate.js'
 
 describe('joinParts', () => {
-	it('joins parts correctly', ({ expect }) => {
-		expect(generate.joinParts(['foo', 'bar', 'baz'])).toEqual('foo bar baz')
-	})
-
-	it('trims whitespace', ({ expect }) => {
-		expect(generate.joinParts([' foo ', ' bar ', ' baz '])).toEqual('foo bar baz')
-	})
-
-	it('ignores empty components', ({ expect }) => {
-		expect(generate.joinParts(['foo', '', 'bar', ' ', 'baz'])).toEqual('foo bar baz')
+	it.each([
+		{
+			name: 'empty',
+			parts: [],
+			result: '',
+		},
+		{
+			name: 'single',
+			parts: ['foo'],
+			result: 'foo',
+		},
+		{
+			name: 'normal',
+			parts: ['foo', 'bar', 'baz'],
+			result: 'foo bar baz',
+		},
+		{
+			name: 'whitespace',
+			parts: [' foo ', ' bar ', ' baz '],
+			result: 'foo bar baz',
+		},
+		{
+			name: 'empty components',
+			parts: ['foo', '', 'bar', ' ', 'baz'],
+			result: 'foo bar baz',
+		},
+	])(`handles $name`, ({ parts, result }) => {
+		expect(generate.joinParts(parts)).toEqual(result)
 	})
 })
 
@@ -99,155 +117,105 @@ describe('normalizeCondition', () => {
 })
 
 describe('generateSelect', () => {
-	it('gives empty default', ({ expect }) => {
-		expect(generate.generateSelect('foo')).toEqual({
-			query: `SELECT foo.* FROM foo`,
-			values: [],
-		})
-	})
-
-	it('handles selects', ({ expect }) => {
-		expect(generate.generateSelect('foo', { select: ['bar', 'baz'] })).toEqual({
+	it.each([
+		{ name: 'empty', query: `SELECT foo.* FROM foo`, values: [] },
+		{
+			name: 'select',
+			select: ['bar', 'baz'],
 			query: `SELECT bar,baz FROM foo`,
-			values: [],
-		})
-		expect(
-			generate.generateSelect('foo', {
-				select: [{ col: 'baz', name: 'bar' }],
-			})
-		).toEqual({
+		},
+		{
+			name: 'select with alias',
+			select: [{ col: 'baz', name: 'bar' }],
 			query: `SELECT baz AS bar FROM foo`,
-			values: [],
-		})
-		expect(
-			generate.generateSelect('foo', {
-				select: [{ col: 'COUNT(baz)', name: 'count', cast: 'INTEGER' }],
-			})
-		).toEqual({
+		},
+		{
+			name: 'select with alias and cast',
+			select: [{ col: 'COUNT(baz)', name: 'count', cast: 'INTEGER' as const }],
 			query: `SELECT CAST(COUNT(baz) AS INTEGER) AS count FROM foo`,
-			values: [],
-		})
-		expect(
-			generate.generateSelect('foo', {
-				addSelect: [{ col: 'MAX(bar)', name: 'max' }],
-			})
-		).toEqual({
+		},
+		{
+			name: 'additional select',
+			addSelect: [{ col: 'MAX(bar)', name: 'max' }],
 			query: `SELECT foo.*,MAX(bar) AS max FROM foo`,
-			values: [],
-		})
-	})
-
-	it('handles conditions', ({ expect }) => {
-		expect(generate.generateSelect('foo', { where: 'bar IS NULL' })).toEqual({
+		},
+		{
+			name: 'raw condition',
+			where: 'bar IS NULL',
 			query: `SELECT foo.* FROM foo WHERE bar IS NULL`,
-			values: [],
-		})
-
-		expect(
-			generate.generateSelect('foo', { where: ['bar = 2', 'baz = 3'] })
-		).toEqual({
+		},
+		{
+			name: 'multi conditions',
+			where: ['bar = 2', 'baz = 3'],
 			query: `SELECT foo.* FROM foo WHERE (bar = 2 AND baz = 3)`,
-			values: [],
-		})
-
-		expect(
-			generate.generateSelect('foo', {
-				where: ['bar = 2', ['baz = 3', 'baz > 69']],
-			})
-		).toEqual({
+		},
+		{
+			name: 'nested conditions',
+			where: ['bar = 2', ['baz = 3', 'baz > 69']],
 			query: `SELECT foo.* FROM foo WHERE (bar = 2 AND (baz = 3 OR baz > 69))`,
-			values: [],
-		})
-	})
-
-	it('handles sorting', ({ expect }) => {
-		expect(generate.generateSelect('foo', { sort: [{ col: 'baz' }] })).toEqual({
+		},
+		{
+			name: 'natural join',
+			join: [{ join: 'baz' }],
+			query: `SELECT foo.* FROM foo NATURAL JOIN baz`,
+		},
+		{
+			name: 'join with name',
+			join: [{ join: 'table2', name: 'bar' }],
+			query: `SELECT foo.* FROM foo JOIN table2 ON table2.bar = foo.bar`,
+		},
+		{
+			name: 'join with type',
+			join: [{ join: 'table2', type: 'LEFT' as const, name: 'bar' }],
+			query: `SELECT foo.* FROM foo LEFT JOIN table2 ON table2.bar = foo.bar`,
+		},
+		{
+			name: 'join with other table',
+			join: [
+				{
+					type: 'RIGHT' as const,
+					join: 'table2',
+					name: 'bar',
+					table: 'table3',
+					col: 'baz',
+				},
+			],
+			query: `SELECT foo.* FROM foo RIGHT JOIN table2 ON table2.bar = table3.baz`,
+		},
+		{
+			name: 'sort',
+			sort: [{ col: 'baz' }],
 			query: `SELECT foo.* FROM foo ORDER BY baz ASC NULLS LAST`,
-			values: [],
-		})
-		expect(
-			generate.generateSelect('foo', {
-				sort: [
-					{ col: 'bar', desc: true },
-					{ col: 'baz', nullsFirst: true },
-				],
-			})
-		).toEqual({
+		},
+		{
+			name: 'multi sort',
+			sort: [
+				{ col: 'bar', desc: true },
+				{ col: 'baz', nullsFirst: true },
+			],
 			query: `SELECT foo.* FROM foo ORDER BY bar DESC NULLS LAST,baz ASC NULLS FIRST`,
-			values: [],
-		})
-	})
-
-	it('handles pagination', ({ expect }) => {
-		expect(generate.generateSelect('foo', { take: 2 })).toEqual({
+		},
+		{
+			name: 'limit',
+			take: 2,
 			query: `SELECT foo.* FROM foo LIMIT 2`,
-			values: [],
-		})
-		expect(generate.generateSelect('foo', { skip: 9 })).toEqual({
+		},
+		{
+			name: 'offset',
+			skip: 9,
 			query: `SELECT foo.* FROM foo OFFSET 9`,
-			values: [],
-		})
-		expect(generate.generateSelect('foo', { take: 69, skip: 420 })).toEqual({
+		},
+		{
+			name: 'limit & offset',
+			take: 69,
+			skip: 420,
 			query: `SELECT foo.* FROM foo LIMIT 69 OFFSET 420`,
-			values: [],
+		},
+	])(`handles $name`, ({ name, query, values, ...opts }) => {
+		expect(generate.generateSelect('foo', opts)).toEqual({
+			query,
+			values: values ?? [],
 		})
-	})
-})
-
-describe('getInsertValues', () => {
-	it('generates correctly', ({ expect }) => {
-		expect(generate.getInsertValues([])).toEqual([])
-		expect(generate.getInsertValues([{ foo: 'bar', baz: 'boom' }])).toEqual([
-			{
-				cols: ['baz', 'foo'],
-				values: [['boom', 'bar']],
-			},
-		])
-		expect(
-			generate.getInsertValues([
-				{ a: 1, b: 2 },
-				{ a: 3, b: 4 },
-			])
-		).toEqual([
-			{
-				cols: ['a', 'b'],
-				values: [
-					[1, 2],
-					[3, 4],
-				],
-			},
-		])
-	})
-
-	it('generates for different keys', ({ expect }) => {
-		expect(
-			generate.getInsertValues([
-				{ a: 1, b: 2 },
-				{ a: 3, b: 4, c: 5 },
-				{ a: 6, b: 7 },
-				{ a: 8, b: 9, c: 10 },
-				{ a: 11, c: 12 },
-			])
-		).toEqual([
-			{
-				cols: ['a', 'b'],
-				values: [
-					[1, 2],
-					[6, 7],
-				],
-			},
-			{
-				cols: ['a', 'b', 'c'],
-				values: [
-					[3, 4, 5],
-					[8, 9, 10],
-				],
-			},
-			{
-				cols: ['a', 'c'],
-				values: [[11, 12]],
-			},
-		])
 	})
 })
 

@@ -12,7 +12,7 @@ describe('stringifySelectOptions', () => {
 		},
 		{
 			name: 'select with alias & cast',
-			select: [{ col: 'COUNT(foo)', name: 'count', cast: 'INTEGER' }],
+			select: [{ col: 'COUNT(foo)', name: 'count', cast: 'INTEGER' as const }],
 			result: '_c=COUNT%28foo%29%3Acount%3AINTEGER',
 		},
 		{
