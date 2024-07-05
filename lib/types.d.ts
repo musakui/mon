@@ -95,6 +95,16 @@ export type DatabaseSchema = Map<string, TableSchema>
 
 // UTIL
 
+export type Statement = {
+	/** SQL */
+	sql: string
+
+	/** parameters to bind */
+	values: unknown[]
+}
+
+export type StatementFragment = Pick<Statement, 'sql' | 'values'>
+
 export type Operation = [op: string, ...unknown[]]
 
 export type ProcessOperation = (

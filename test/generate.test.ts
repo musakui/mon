@@ -1,75 +1,80 @@
 import { describe, it, expect } from 'vitest'
 import * as generate from '../lib/generate.js'
 
-describe('joinParts', () => {
+describe('makeStatement', () => {
 	it.each([
 		{
 			name: 'empty',
 			parts: [],
-			result: '',
+			values: [],
+			sql: '',
+			vals: [],
 		},
 		{
 			name: 'single',
 			parts: ['foo'],
-			result: 'foo',
+			sql: 'foo',
 		},
 		{
 			name: 'normal',
 			parts: ['foo', 'bar', 'baz'],
-			result: 'foo bar baz',
+			sql: 'foo bar baz',
 		},
 		{
 			name: 'whitespace',
 			parts: [' foo ', ' bar ', ' baz '],
-			result: 'foo bar baz',
+			sql: 'foo bar baz',
 		},
 		{
 			name: 'empty components',
 			parts: ['foo', '', 'bar', ' ', 'baz'],
-			result: 'foo bar baz',
+			sql: 'foo bar baz',
 		},
 		{
 			name: 'non-strings',
 			parts: ['foo', false, 'bar', 0, 'baz'],
-			result: 'foo bar baz',
+			sql: 'foo bar baz',
 		},
-	])(`handles $name`, ({ parts, result }) => {
-		expect(generate.joinParts(parts)).toEqual(result)
+	])(`handles $name`, ({ parts, values, sql, vals }) => {
+		expect(generate.makeStatement(parts, values)).toEqual({
+			sql,
+			values: vals ?? [],
+		})
 	})
 })
 
 describe('combineConditions', () => {
 	it('handles empty', ({ expect }) => {
-		expect(generate.combineConditions([])).toEqual({ sql: '', params: [] })
-		expect(generate.combineConditions([{ sql: '', params: [] }])).toEqual({
+		expect(generate.combineConditions([])).toEqual({ sql: '', values: [] })
+		expect(generate.combineConditions([{ sql: '', values: [] }])).toEqual({
 			sql: '',
-			params: [],
+			values: [],
 		})
 	})
 
 	it('handles single condition', ({ expect }) => {
-		expect(generate.combineConditions([{ sql: 'foo', params: [1] }])).toEqual({
+		expect(generate.combineConditions([{ sql: 'foo', values: [1] }])).toEqual({
 			sql: 'foo',
-			params: [1],
+			values: [1],
 		})
 	})
 
 	it('joins with correct operator', ({ expect }) => {
 		expect(
 			generate.combineConditions([
-				{ sql: 'foo', params: [1] },
-				{ sql: 'bar', params: ['hi'] },
+				{ sql: 'foo', values: [1] },
+				{ sql: 'bar', values: ['hi'] },
 			])
-		).toEqual({ sql: '(foo AND bar)', params: [1, 'hi'] })
+		).toEqual({ sql: '(foo AND bar)', values: [1, 'hi'] })
 		expect(
 			generate.combineConditions(
 				[
-					{ sql: 'foo', params: [3, 'ok'] },
-					{ sql: 'bar', params: [4, 'bye'] },
+					{ sql: 'foo', values: [3, 'ok'] },
+					{ sql: 'bar', values: [4, 'bye'] },
 				],
 				true
 			)
-		).toEqual({ sql: '(foo OR bar)', params: [3, 'ok', 4, 'bye'] })
+		).toEqual({ sql: '(foo OR bar)', values: [3, 'ok', 4, 'bye'] })
 	})
 })
 
@@ -81,17 +86,17 @@ describe('normalizeCondition', () => {
 	it('handles single condition', ({ expect }) => {
 		expect(generate.normalizeCondition({ sql: '' })).toEqual([])
 		expect(generate.normalizeCondition({ sql: 'bar = 3' })).toEqual([
-			{ sql: 'bar = 3', params: [] },
+			{ sql: 'bar = 3', values: [] },
 		])
 		expect(
 			generate.normalizeCondition({ sql: 'bar = ?', params: '2' })
-		).toEqual([{ sql: 'bar = ?', params: ['2'] }])
+		).toEqual([{ sql: 'bar = ?', values: ['2'] }])
 		expect(
 			generate.normalizeCondition({ sql: 'bar = ?', params: [2] })
-		).toEqual([{ sql: 'bar = ?', params: [2] }])
+		).toEqual([{ sql: 'bar = ?', values: [2] }])
 		expect(
 			generate.normalizeCondition({ sql: 'bar', op: '>', params: '2' })
-		).toEqual([{ sql: 'bar > ?', params: ['2'] }])
+		).toEqual([{ sql: 'bar > ?', values: ['2'] }])
 	})
 
 	it('handles array', ({ expect }) => {
@@ -101,8 +106,8 @@ describe('normalizeCondition', () => {
 				{ sql: 'baz > 3' },
 			])
 		).toEqual([
-			{ sql: 'bar = ?', params: ['2'] },
-			{ sql: 'baz > 3', params: [] },
+			{ sql: 'bar = ?', values: ['2'] },
+			{ sql: 'baz > 3', values: [] },
 		])
 	})
 })
@@ -202,9 +207,9 @@ describe('generateSelect', () => {
 			skip: 420,
 			query: `SELECT foo.* FROM foo LIMIT 69 OFFSET 420`,
 		},
-	])(`handles $name`, ({ name, query, values, ...opts }) => {
+	])(`handles $name`, ({ name, query: sql, values, ...opts }) => {
 		expect(generate.generateSelect('foo', opts)).toEqual({
-			query,
+			sql,
 			values: values ?? [],
 		})
 	})
@@ -213,18 +218,18 @@ describe('generateSelect', () => {
 describe('generateInsert', () => {
 	it('handles empty', ({ expect }) => {
 		expect(generate.generateInsert('foo', [])).toEqual({
-			query: '',
+			sql: '',
 			values: [],
 		})
 		expect(generate.generateInsert('foo', [[]])).toEqual({
-			query: '',
+			sql: '',
 			values: [],
 		})
 	})
 
 	it('handles without cols', ({ expect }) => {
 		expect(generate.generateInsert('foo', [[1, 'bar']])).toEqual({
-			query: 'INSERT INTO foo VALUES (?,?)',
+			sql: 'INSERT INTO foo VALUES (?,?)',
 			values: [1, 'bar'],
 		})
 		expect(
@@ -233,7 +238,7 @@ describe('generateInsert', () => {
 				[4, 'baz'],
 			])
 		).toEqual({
-			query: 'INSERT INTO foo VALUES (?,?),(?,?)',
+			sql: 'INSERT INTO foo VALUES (?,?),(?,?)',
 			values: [3, 'bar', 4, 'baz'],
 		})
 	})
@@ -242,7 +247,7 @@ describe('generateInsert', () => {
 		expect(
 			generate.generateInsert('foo', [[1, 'bar']], { cols: ['c', 'name'] })
 		).toEqual({
-			query: 'INSERT INTO foo (c,name) VALUES (?,?)',
+			sql: 'INSERT INTO foo (c,name) VALUES (?,?)',
 			values: [1, 'bar'],
 		})
 	})
@@ -251,11 +256,11 @@ describe('generateInsert', () => {
 describe('generateUpdate', () => {
 	it('handles empty', ({ expect }) => {
 		expect(generate.generateUpdate('foo', {})).toEqual({
-			query: '',
+			sql: '',
 			values: [],
 		})
 		expect(generate.generateUpdate('foo', { updates: {} })).toEqual({
-			query: '',
+			sql: '',
 			values: [],
 		})
 	})
@@ -264,7 +269,7 @@ describe('generateUpdate', () => {
 		expect(
 			generate.generateUpdate('foo', { updates: { bar: 1, baz: 'hi' } })
 		).toEqual({
-			query: 'UPDATE foo SET bar = ?, baz = ?',
+			sql: 'UPDATE foo SET bar = ?, baz = ?',
 			values: [1, 'hi'],
 		})
 	})
@@ -276,7 +281,7 @@ describe('generateUpdate', () => {
 				where: { sql: 'id', op: '=', params: [2] },
 			})
 		).toEqual({
-			query: 'UPDATE foo SET bar = ?, baz = ? WHERE id = ?',
+			sql: 'UPDATE foo SET bar = ?, baz = ? WHERE id = ?',
 			values: [1, 'hi', 2],
 		})
 	})
@@ -285,7 +290,7 @@ describe('generateUpdate', () => {
 describe('generateDelete', () => {
 	it('handles empty', ({ expect }) => {
 		expect(generate.generateDelete('foo', {})).toEqual({
-			query: 'DELETE FROM foo',
+			sql: 'DELETE FROM foo',
 			values: [],
 		})
 	})
@@ -296,7 +301,7 @@ describe('generateDelete', () => {
 				where: { sql: 'id', op: '=', params: [2] },
 			})
 		).toEqual({
-			query: 'DELETE FROM foo WHERE id = ?',
+			sql: 'DELETE FROM foo WHERE id = ?',
 			values: [2],
 		})
 	})
