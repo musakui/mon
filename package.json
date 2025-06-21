@@ -2,7 +2,7 @@
 	"name": "@musakui/mon",
 	"description": "query utils",
 	"license": "MIT",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"files": [
 		"types",
@@ -15,13 +15,17 @@
 			"types": "./types/index.d.ts",
 			"import": "./lib/all.js"
 		},
+		"./sql": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/sql.js"
+		},
 		".": {
 			"types": "./types/index.d.ts",
 			"import": "./lib/index.js"
 		}
 	},
 	"scripts": {
-		"gentypes": "dts-buddy -m @musakui/mon:lib/public.d.ts -m @musakui/mon/all:lib/all.js",
+		"gentypes": "dts-buddy -m @musakui/mon:lib/public.d.ts -m @musakui/mon/all:lib/all.js -m @musakui/mon/sql:lib/sql.js",
 		"test:run": "vitest run",
 		"test:ui": "vitest --ui",
 		"test": "vitest"
