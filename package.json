@@ -1,0 +1,31 @@
+{
+	"name": "@musakui/mon",
+	"description": "query utils",
+	"license": "MIT",
+	"repository": {
+		"url": "git+https://github.com/musakui/mon.git"
+	},
+	"version": "0.0.3",
+	"type": "module",
+	"files": [
+		"types",
+		"lib"
+	],
+	"main": "./lib/index.js",
+	"types": "./types/index.d.ts",
+	"imports": {
+		"#/*": "./lib/*"
+	},
+	"exports": {
+		".": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/index.js"
+		}
+	},
+	"scripts": {
+		"test": "vitest"
+	},
+	"devDependencies": {
+		"vitest": "^4.1.0"
+	}
+}

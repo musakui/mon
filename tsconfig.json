@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"noEmit": true,
+		"allowJs": true,
+		"target": "ESNext",
+		"skipLibCheck": true,
+		"moduleResolution": "bundler",
+		"lib": ["ESNext"]
+	},
+	"include": [
+		"test",
+		"lib"
+	]
+}
