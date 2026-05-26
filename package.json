@@ -17,6 +17,10 @@
 		"#/*": "./lib/*"
 	},
 	"exports": {
+		"./core": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/core/index.js"
+		},
 		".": {
 			"types": "./types/index.d.ts",
 			"import": "./lib/index.js"
