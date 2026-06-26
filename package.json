@@ -21,6 +21,10 @@
 			"types": "./types/index.d.ts",
 			"import": "./lib/core/index.js"
 		},
+		"./node": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/node/index.js"
+		},
 		".": {
 			"types": "./types/index.d.ts",
 			"import": "./lib/index.js"
@@ -30,6 +34,8 @@
 		"test": "vitest"
 	},
 	"devDependencies": {
+		"@types/node": "^24.13.0",
+		"typescript": "^6.0.0",
 		"vitest": "^4.1.0"
 	}
 }

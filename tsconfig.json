@@ -1,11 +1,12 @@
 {
 	"compilerOptions": {
-		"strict": true,
 		"noEmit": true,
 		"allowJs": true,
+		"checkJs": true,
 		"target": "ESNext",
 		"skipLibCheck": true,
 		"moduleResolution": "bundler",
+		"types": ["node"],
 		"lib": ["ESNext"]
 	},
 	"include": [
