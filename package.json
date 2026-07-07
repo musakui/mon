@@ -21,6 +21,10 @@
 			"types": "./types/index.d.ts",
 			"import": "./lib/core/index.js"
 		},
+		"./sqlite": {
+			"types": "./types/index.d.ts",
+			"import": "./lib/sqlite/index.js"
+		},
 		"./node": {
 			"types": "./types/index.d.ts",
 			"import": "./lib/node/index.js"
