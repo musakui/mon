@@ -35,6 +35,15 @@ export type TableDefOpts = {
 
 export type ComparisonOp = '=' | '<' | '>' | '<=' | '>=' | '!='
 
+export type Condition =
+	| SqlCondition
+	| {
+			op: 'grp'
+			s?: 'any' | 'all'
+			v: Condition[]
+			not?: boolean
+	  }
+
 export type SqlCondition =
 	| {
 			op: ComparisonOp
@@ -80,13 +89,13 @@ export type SqlCondition =
 	  }
 
 export type FindOpts = {
-	/** `SELECT` cols/expr */
-	select?: string
+	/** raw `SELECT` cols */
+	select?: string[]
 
-	/** `WHERE` conditions */
-	filter?: SqlCondition[]
+	/** `WHERE` condition */
+	filter?: Condition
 
-	/** `ORDER BY` terms */
+	/** raw `ORDER BY` terms */
 	order?: string[]
 
 	/** `LIMIT` (no limit if not set) */
@@ -110,7 +119,10 @@ export type TableDef = {
 	condition(c: SqlCondition): SqlFragment | null
 
 	find(f: FindOpts): SqlFragment
+
 	delete(id: IdType): SqlFragment
+
 	getOne(id: IdType): SqlFragment
+
 	getMany(ids: IdType[]): SqlFragment
 }
